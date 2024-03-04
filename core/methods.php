@@ -1,0 +1,146 @@
+<?php
+session_start();
+class Methods {	
+    protected $hostName = 'localhost';
+    protected $userName = 'root';
+    protected $password = '';
+	protected $dbName = 'chitfund';
+	private $userTable = 'user';
+	private $groupTable = 'groups';
+	private $membersTable = 'members';
+	private $paymentTable = 'payments';
+    private $dbConnect = false;
+    public function __construct(){
+        if(!$this->dbConnect){ 		
+			$conn = new mysqli($this->hostName, $this->userName, $this->password, $this->dbName);
+            if($conn->connect_error){
+                die("Error failed to connect to MySQL: " . $conn->connect_error);
+            } else{
+                $this->dbConnect = $conn;
+            }
+        }
+    }
+	private function getData($sqlQuery) {
+		$result = mysqli_query($this->dbConnect, $sqlQuery);
+		if(!$result){
+			die('Error in query: '. mysqli_error());
+		}
+		$data= array();
+		while ($row = mysqli_fetch_array($result, MYSQLI_ASSOC)) {
+			$data[]=$row;            
+		}
+		return $data;
+	}
+	private function getNumRows($sqlQuery) {
+		$result = mysqli_query($this->dbConnect, $sqlQuery);
+		if(!$result){
+			die('Error in query: '. mysqli_error());
+		}
+		$numRows = mysqli_num_rows($result);
+		return $numRows;
+	}	
+	public function adminLoginStatus (){
+		if(empty($_SESSION["adminUserid"])) {
+			header("Location: index.php");
+		}
+	}
+	public function isLoggedin (){
+		if(!empty($_SESSION["adminUserid"])) {	
+			return true;
+		} else {
+			return false;
+		}
+	}
+	public function adminLogin(){		
+		$errorMessage = '';
+		if(!empty($_POST["login"]) && $_POST["email"]!=''&& $_POST["password"]!='') {	
+			$email = $_POST['email'];
+			$password = $_POST['password'];
+			$sqlQuery = "SELECT * FROM ".$this->userTable." 
+				WHERE email='".$email."' AND password='".md5($password)."' AND status = 'active' AND type = 'administrator'";
+			$resultSet = mysqli_query($this->dbConnect, $sqlQuery) or die("error".mysql_error());
+			$isValidLogin = mysqli_num_rows($resultSet);	
+			if($isValidLogin){
+				$userDetails = mysqli_fetch_assoc($resultSet);
+				$_SESSION["adminUserid"] = $userDetails['id'];
+				$_SESSION["admin"] = $userDetails['first_name']." ".$userDetails['last_name'];
+				header("location: dashboard.php"); 		
+			} else {		
+				$errorMessage = "Invalid login!";		 
+			}
+		} else if(!empty($_POST["login"])){
+			$errorMessage = "Enter Both user and password!";	
+		}
+		return $errorMessage; 		
+	}
+
+
+    public function addGroup() {
+        // Check if the required fields are set
+        if (isset($_POST['groupname']) && isset($_POST['groupamount'])) {
+            // Prepare the SQL statement
+            $sql = "INSERT INTO " . $this->groupTable . " (Name, Amount, CreatedDate, Status) VALUES (?, ?, ?, ?)";
+            $stmt = $this->dbConnect->prepare($sql);
+    
+            // Get the current date and time
+            $currentDateTime = date("d-m-Y H:i:s");
+            
+            // Set the status
+            $status = 1;
+            
+            // Bind parameters and execute the statement
+            $stmt->bind_param("sisi", $_POST['groupname'], $_POST['groupamount'], $currentDateTime, $status);
+            $stmt->execute();
+    
+            // Check if the insertion was successful
+            if ($stmt->affected_rows > 0) {
+                $response = array("status" => "success", "message" => "Group added successfully");
+            } else {
+                $response = array("status" => "error", "message" => "Failed to add group");
+            }
+    
+            // Close the statement
+            $stmt->close();
+        } else {
+            $response = array("status" => "error", "message" => "Missing required fields");
+        }
+    
+        // Return the response as JSON
+        header('Content-Type: application/json');
+        echo json_encode($response);
+    }
+    
+
+    public function getGroupList() {
+        $sqlQuery = "SELECT * FROM ".$this->groupTable;
+        
+        $result = mysqli_query($this->dbConnect, $sqlQuery);
+        $numRows = mysqli_num_rows($result);
+        
+        $groupList = array();
+        while ($group = mysqli_fetch_assoc($result)) {        
+            $groupRow = array();
+            $groupRow['ID'] = $group['ID'];
+            $groupRow['Name'] = $group['Name'];
+            $groupRow['Amount'] = $group['Amount'];
+            $groupRow['CreatedDate'] = $group['CreatedDate'];
+            $groupRow['Status'] = $group['Status'];
+            $groupList[] = $groupRow;
+        }
+        
+        // Encode each group individually as JSON
+        $jsonResponse = array();
+        foreach ($groupList as $group) {
+            $jsonResponse[] = json_encode($group);
+        }
+        
+        // Return the response as JSON
+        header('Content-Type: application/json');
+        echo '[' . implode(',', $jsonResponse) . ']';
+    }
+    
+
+    
+
+
+}
