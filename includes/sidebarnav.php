@@ -4,10 +4,10 @@
     </div>
     <ul class="list-unstyled components text-secondary">
         <li>
-            <a href="dashboard.php"><i class="fas fa-home"></i> Dashboard</a>
+            <a href="dashboard.php"><i class="fas fa-home"></i>Dashboard</a>
         </li>
         <li>
-            <a href="groups.php"><i class="fa-solid fa-user-group"></i> Group Management</a>
+            <a href="groups.php"><i class="fas fa-table"></i>Group Management</a>
         </li>
         <li>
             <a href="members.php"><i class="fas fa-table"></i>Member Management</a>
@@ -24,7 +24,7 @@
         </li> -->
         
         <li>
-            <a href="settings.html"><i class="fas fa-cog"></i>Settings</a>
+            <a href="#"><i class="fas fa-cog"></i>Settings</a>
         </li>
     </ul>
 </nav>

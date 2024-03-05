@@ -138,6 +138,34 @@ class Methods {
         header('Content-Type: application/json');
         echo '[' . implode(',', $jsonResponse) . ']';
     }
+
+    public function addMember() {
+        // Check if all required fields are set
+        if (isset($_POST['name']) && isset($_POST['email']) && isset($_POST['phone']) && isset($_POST['address']) && isset($_POST['city']) && isset($_POST['state']) && isset($_POST['zip']) && isset($_POST['group'])) {
+            // Prepare SQL statement
+            $sql = "INSERT INTO ".$this->membersTable." (GroupID, Name, Email, Phone, Address, City, State, Zip, ContributionAmount, Status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            $stmt = $this->dbConnect->prepare($sql);
+            
+            // Bind parameters
+            $stmt->bind_param("isssssssss", $_POST['group'], $_POST['name'], $_POST['email'], $_POST['phone'], $_POST['address'], $_POST['city'], $_POST['state'], $_POST['zip'], $_POST['contributionAmount'], $_POST['status']);
+            
+            // Execute the statement
+            if ($stmt->execute()) {
+                $response = array("status" => "success", "message" => "Member added successfully");
+            } else {
+                $response = array("status" => "error", "message" => "Failed to add member");
+            }
+            
+            // Close the statement
+            $stmt->close();
+        } else {
+            $response = array("status" => "error", "message" => "Missing required fields");
+        }
+        
+        // Return the response as JSON
+        header('Content-Type: application/json');
+        echo json_encode($response);
+    }
     
 
     
