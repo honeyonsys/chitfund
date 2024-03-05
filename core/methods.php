@@ -167,7 +167,39 @@ class Methods {
         echo json_encode($response);
     }
     
-
+    public function getMemberList() {
+        $sqlQuery = "SELECT * FROM ".$this->membersTable;
+        
+        $result = mysqli_query($this->dbConnect, $sqlQuery);
+        $numRows = mysqli_num_rows($result);
+        
+        $memberList = array();
+        while ($group = mysqli_fetch_assoc($result)) {        
+            $memberRow = array();
+            $memberRow['ID'] = $group['ID'];
+            $memberRow['GroupID'] = $group['GroupID'];
+            $memberRow['Name'] = $group['Name'];
+            $memberRow['Email'] = $group['Email'];
+            $memberRow['Phone'] = $group['Phone'];
+            $memberRow['Address'] = $group['Address'];
+            $memberRow['City'] = $group['City'];
+            $memberRow['State'] = $group['State'];
+            $memberRow['Zip'] = $group['Zip'];
+            $memberRow['ContributionAmount'] = $group['ContributionAmount'];
+            $memberRow['Status'] = $group['Status'];
+            $memberList[] = $memberRow;
+        }
+        
+        // Encode each group individually as JSON
+        $jsonResponse = array();
+        foreach ($memberList as $member) {
+            $jsonResponse[] = json_encode($member);
+        }
+        
+        // Return the response as JSON
+        header('Content-Type: application/json');
+        echo '[' . implode(',', $jsonResponse) . ']';
+    }
     
 
 

@@ -146,14 +146,14 @@
                                 <div class="card-header">Members List</div>
                                 <div class="card-body">
                                     <p class="card-title"></p>
-                                    <table class="table table-hover" id="dataTables-example" width="100%">
+                                    <table class="table table-hover" id="dataTables-memberList" width="100%">
                                         <thead>
                                             <tr>
-                                                <th>ID</th>
+                                                <th>S.No</th>
                                                 <th>Name</th>
-                                                <th>Salary</th>
-                                                <th>Country</th>
-                                                <th>City</th>
+                                                <th>Email</th>
+                                                <th>Group</th>
+                                                <th>Action</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -171,62 +171,7 @@
                                                 <td>Curaçao</td>
                                                 <td>Sinaai-Waas</td>
                                             </tr>
-                                            <tr>
-                                                <td>3</td>
-                                                <td>Sage Rodriguez</td>
-                                                <td>$56,142</td>
-                                                <td>Netherlands</td>
-                                                <td>Baileux</td>
-                                            </tr>
-                                            <tr>
-                                                <td>4</td>
-                                                <td>Philip Chaney</td>
-                                                <td>$38,735</td>
-                                                <td>Korea, South</td>
-                                                <td>Overland Park</td>
-                                            </tr>
-                                            <tr>
-                                                <td>5</td>
-                                                <td>Doris Greene</td>
-                                                <td>$63,542</td>
-                                                <td>Malawi</td>
-                                                <td>Feldkirchen in Kärnten</td>
-                                            </tr>
-                                            <tr>
-                                                <td>6</td>
-                                                <td>Mason Porter</td>
-                                                <td>$78,615</td>
-                                                <td>Chile</td>
-                                                <td>Gloucester</td>
-                                            </tr>
-                                            <tr>
-                                                <td>7</td>
-                                                <td>Allisa Sanches</td>
-                                                <td>$28,615</td>
-                                                <td>Columbia</td>
-                                                <td>Nigger</td>
-                                            </tr>
-                                            <tr>
-                                                <td>8</td>
-                                                <td>Peter Benhams</td>
-                                                <td>$33,215</td>
-                                                <td>Ecuador</td>
-                                                <td>Holster</td>
-                                            </tr>
-                                            <tr>
-                                                <td>9</td>
-                                                <td>Bramson Adams</td>
-                                                <td>$109,222</td>
-                                                <td>Philippines</td>
-                                                <td>Camp John</td>
-                                            </tr>
-                                            <tr>
-                                                <td>10</td>
-                                                <td>Jessie Williams</td>
-                                                <td>$55,123</td>
-                                                <td>Malaysia</td>
-                                                <td>Glosterine</td>
-                                            </tr>
+                                            
                                         </tbody>
                                     </table>
                                 </div>
@@ -241,7 +186,47 @@
     <?php include('includes/includedjs.php');?>
     <script>
     $(document).ready(function(){
-        
+        var dataTable = $('#dataTables-memberList').DataTable({
+            responsive: true,
+            pageLength: 20,
+            lengthChange: false,
+            searching: true,
+            ordering: true
+        });
+        function getMemberList() {
+            $.ajax({
+                url: 'core/action.php',
+                type: 'POST',
+                data: {
+                    action: 'getMemberList'
+                },
+                beforeSend: function() {
+                    showLoader();
+                },
+                success: function(response) {
+                    hideLoader();
+                    dataTable.clear().draw();
+                    var sno = 1;
+                    $.each(response, function(index, member) {
+                        dataTable.row.add([
+                            sno,
+                            member.Name,
+                            member.Email,
+                            member.GroupID,
+                            '<button class="btn btn-outline-secondary mb-2">Edit</button>'
+                        ]).draw();
+                        sno++;
+                    });
+                },
+                error: function(xhr, status, error) {
+                    console.log('Error: ' + error);
+                    hideLoader();
+                }
+            });
+        }
+
+        getMemberList();
+
         $('#addMemberForm').submit(function(e) {
             // Prevent default form submission behavior
             e.preventDefault();
@@ -260,7 +245,16 @@
                 },
                 success: function(response) {
                     // Handle success response
-                    console.log(response);
+                    $("#name").val("");
+                    $("#email").val("");
+                    $("#address").val("");
+                    $("#city").val("");
+                    $("#state").val("");
+                    $("#zip").val("");
+                    $("#phone").val("");
+                    $('#group option[value=""]').attr("selected",true);
+
+                    getMemberList();
 
                     // Hide loader
                     hideLoader();
@@ -269,7 +263,7 @@
                 },
                 error: function(xhr, status, error) {
                     // Handle error response
-                    alert('Error: ' + error);
+                    console.error('Error: ' + error);
 
                     // Hide loader
                     hideLoader();
