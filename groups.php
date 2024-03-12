@@ -27,8 +27,8 @@
                                 <span aria-hidden="true">&times;</span>
                                 </button>
                             </div>
-                            <div class="modal-body">
-                                ...
+                            <div class="modal-body" id="membersBodalBody">
+                                
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -51,6 +51,7 @@
                                 <div class="card-body">
                                     
                                     <form accept-charset="utf-8" id="addGroupForm">
+                                        <input type="hidden" name="editId" id="editId" />
                                         <div class="mb-3">
                                             <label for="groupname" class="form-label">Group Name</label>
                                             <input type="text" id="groupname" placeholder="Group Name" class="form-control" required>
@@ -60,7 +61,7 @@
                                             <input type="number" id="groupamount" placeholder="Group Amount" class="form-control" required>
                                         </div>
                                         <div class="mb-3">
-                                            <input type="submit" value="Add Group [+]" class="btn btn-primary">
+                                            <input type="submit" id="saveGroupBtn" value="Add Group [+]" class="btn btn-primary">
                                             <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#membersModal">Add Members <i class="fa-solid fa-user-group"></i></button>
 
                                             
@@ -128,7 +129,7 @@
                         dataTable.row.add([
                             group.Name,
                             group.Amount,
-                            '<button class="btn btn-outline-secondary mb-2">Edit</button>'
+                            '<button class="btn btn-outline-secondary mb-2 editGroup" data-id="'+group.ID+'">Edit</button>'
                         ]).draw();
                     });
                 },
@@ -165,8 +166,10 @@
                 },
                 success: function(response) {
                     // Handle success response
+                    $("#editId").val("");
                     $("#groupname").val("");
                     $("#groupamount").val("");
+                    $("#saveGroupBtn").val("Add Group [+]");
                     getGroupList();
                     hideLoader();
                     // You can redirect or perform other actions here if needed
@@ -180,15 +183,70 @@
         });
 
 
-        // $('#exampleModal').on('show.bs.modal', function (event) {
-        //     var button = $(event.relatedTarget) // Button that triggered the modal
-        //     var recipient = button.data('whatever') // Extract info from data-* attributes
-        //     // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
-        //     // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
-        //     var modal = $(this)
-        //     modal.find('.modal-title').text('New message to ' + recipient)
-        //     modal.find('.modal-body input').val(recipient)
-        // })
+        //triggered event when members modal open for selecting members
+        $('#membersModal').on('show.bs.modal', function (event) {
+            var modal = $(this)
+            $.ajax({
+                url: 'core/action.php',
+                type: 'POST',
+                data: {
+                    action: 'getMemberList'
+                },
+                beforeSend: function() {
+                    showLoader();
+                },
+                success: function(data) {
+                    hideLoader();
+                    $('#membersBodalBody').empty();
+
+                    // Iterate over the user data and generate HTML content
+                    data.forEach(function(user) {
+                        var checkboxHtml = '<div class="form-check">' +
+                                            '<input class="form-check-input" type="checkbox" value="' + user.ID + '" id="userCheckbox' + user.ID + '">' +
+                                            '<label class="form-check-label" for="userCheckbox' + user.ID + '">' + user.Name + ' | ' + user.Email+'</label>' +
+                                        '</div>';
+                        // Append the checkbox HTML to the modal body
+                        $('#membersBodalBody').append(checkboxHtml);
+                    });
+
+                },
+                error: function(xhr, status, error) {
+                    console.log('Error: ' + error);
+                    hideLoader();
+                }
+            });
+            
+        });
+
+
+        $('#dataTables-grouplist').on("click", ".editGroup", function() {
+            let groupId = $(this).attr('data-id');
+            
+            $.ajax({
+                url: 'core/action.php',
+                type: 'POST',
+                data: {
+                    action: 'getGroupSingle',
+                    groupId: groupId
+                },
+                beforeSend: function() {
+                    showLoader();
+                },
+                success: function(response) {
+                    hideLoader();
+                    $("#editId").val(response.ID);
+                    $("#groupname").focus();
+                    $("#groupname").val(response.Name);
+                    $("#groupamount").val(response.Amount);
+                    $("#saveGroupBtn").val("Save Group");
+                    
+                },
+                error: function(xhr, status, error) {
+                    console.log('Error: ' + error);
+                    hideLoader();
+                }
+            });
+        });
     })();
     </script>
 </body>

@@ -8,6 +8,9 @@ if(!empty($_POST['action']) && $_POST['action'] == 'addGroup') {
 if(!empty($_POST['action']) && $_POST['action'] == 'getGroupList') {
 	$methods->getGroupList();
 }
+if(!empty($_POST['action']) && $_POST['action'] == 'getGroupSingle') {
+	$methods->getGroupSingle();
+}
 if(!empty($_POST['action']) && $_POST['action'] == 'addMember') {
 	$methods->addMember();
 }

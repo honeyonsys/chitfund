@@ -76,39 +76,49 @@ class Methods {
 
 
     public function addGroup() {
-        // Check if the required fields are set
         if (isset($_POST['groupname']) && isset($_POST['groupamount'])) {
-            // Prepare the SQL statement
-            $sql = "INSERT INTO " . $this->groupTable . " (Name, Amount, CreatedDate, Status) VALUES (?, ?, ?, ?)";
-            $stmt = $this->dbConnect->prepare($sql);
-    
-            // Get the current date and time
-            $currentDateTime = date("d-m-Y H:i:s");
-            
-            // Set the status
-            $status = 1;
-            
-            // Bind parameters and execute the statement
-            $stmt->bind_param("sisi", $_POST['groupname'], $_POST['groupamount'], $currentDateTime, $status);
-            $stmt->execute();
-    
-            // Check if the insertion was successful
-            if ($stmt->affected_rows > 0) {
-                $response = array("status" => "success", "message" => "Group added successfully");
+            // Check if groupId is set, if set, update existing record
+            if (isset($_POST['groupId']) && !empty($_POST['groupId'])) {
+                $groupId = $_POST['groupId'];
+                
+                // Prepare SQL statement for updating
+                $sql = "UPDATE " . $this->groupTable . " SET Name=?, Amount=?, CreatedDate=?, Status=? WHERE id=?";
+                
+                // Prepare and bind parameters
+                $stmt = $this->dbConnect->prepare($sql);
+                $currentDateTime = date("d-m-Y H:i:s");
+                $status = 1;
+                $stmt->bind_param("sssii", $_POST['groupname'], $_POST['groupamount'], $currentDateTime, $status, $groupId);
             } else {
-                $response = array("status" => "error", "message" => "Failed to add group");
+                // Prepare SQL statement for insertion
+                $sql = "INSERT INTO " . $this->groupTable . " (Name, Amount, CreatedDate, Status) VALUES (?, ?, ?, ?)";
+                
+                // Prepare and bind parameters
+                $stmt = $this->dbConnect->prepare($sql);
+                $currentDateTime = date("d-m-Y H:i:s");
+                $status = 1;
+                $stmt->bind_param("sssi", $_POST['groupname'], $_POST['groupamount'], $currentDateTime, $status);
             }
-    
+            
+            // Execute the statement
+            if ($stmt->execute()) {
+                $response = array("status" => "success", "message" => "Group " . (isset($groupId) ? "updated" : "added") . " successfully");
+            } else {
+                $response = array("status" => "error", "message" => "Failed to " . (isset($groupId) ? "update" : "add") . " group");
+            }
+            
             // Close the statement
             $stmt->close();
         } else {
             $response = array("status" => "error", "message" => "Missing required fields");
         }
-    
+        
         // Return the response as JSON
         header('Content-Type: application/json');
         echo json_encode($response);
     }
+    
+    
     
 
     public function getGroupList() {
@@ -137,6 +147,28 @@ class Methods {
         // Return the response as JSON
         header('Content-Type: application/json');
         echo '[' . implode(',', $jsonResponse) . ']';
+    }
+
+    
+    public function getGroupSingle() {
+        // Check if memberId is set and is numeric
+        if(isset($_POST["groupId"]) && is_numeric($_POST["groupId"])) {
+            $sqlQuery = "SELECT * FROM ".$this->groupTable." WHERE id = ?";
+            $stmt = mysqli_prepare($this->dbConnect, $sqlQuery);
+            mysqli_stmt_bind_param($stmt, "i", $_POST["groupId"]);
+            mysqli_stmt_execute($stmt);
+            $result = mysqli_stmt_get_result($stmt);
+            $row = mysqli_fetch_array($result, MYSQLI_ASSOC);
+            mysqli_stmt_close($stmt);
+            if($row) {
+                header('Content-Type: application/json');
+                echo json_encode($row);
+            } else {
+                echo json_encode(array("error" => "No group found with the provided ID"));
+            }
+        } else {
+            echo json_encode(array("error" => "Invalid groupId"));
+        }
     }
 
     public function addMember() {
