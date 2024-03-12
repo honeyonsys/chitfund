@@ -4,4 +4,5 @@
 <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
 <link href="assets/css/master.css" rel="stylesheet">
 <link href="assets/vendor/flagiconcss/css/flag-icon.min.css" rel="stylesheet">
+<link href="assets/css/select2.min.css" rel="stylesheet" />
 <link href="assets/css/custom.css" rel="stylesheet">

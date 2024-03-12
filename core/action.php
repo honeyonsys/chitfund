@@ -14,3 +14,6 @@ if(!empty($_POST['action']) && $_POST['action'] == 'addMember') {
 if(!empty($_POST['action']) && $_POST['action'] == 'getMemberList') {
 	$methods->getMemberList();
 }
+if(!empty($_POST['action']) && $_POST['action'] == 'getMemberSingle') {
+	$methods->getMemberSingle();
+}

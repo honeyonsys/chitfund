@@ -14,6 +14,7 @@
         <div id="body" class="active">
             <?php include('includes/topnavigation.php');?>
             <div class="content">
+            
                 <div class="container">
                     <div class="row">
                         <div class="col-md-12 page-header">
@@ -28,6 +29,7 @@
                                 <div class="card-header">Add new member</div>
                                     <div class="card-body">
                                     <form accept-charset="utf-8" id="addMemberForm">
+                                        <input type="hidden" name="editId" id="editId" />
                                         <div class="row">
                                             <div class="mb-3 col-md-6">
                                                 <label for="name" class="form-label">Name</label>
@@ -132,7 +134,10 @@
                                             </div>
                                             
                                         </div>
-                                        <input type="submit" value="Add Member [+]" class="btn btn-primary">
+                                        <div id="successMessage" class="alert alert-success" style="display: none;" role="alert">
+                                            Member added successfully!
+                                        </div>  
+                                        <input type="submit" id="saveMemberBtn" value="Add Member [+]" class="btn btn-primary">
                                         <!-- <button class="btn btn-primary"><i class="fas fa-save"></i> Save</button> -->
                                         
                                     </form>
@@ -157,20 +162,7 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td>1</td>
-                                                <td>Dakota Rice</td>
-                                                <td>$36,738</td>
-                                                <td>United States</td>
-                                                <td>Oud-Turnhout</td>
-                                            </tr>
-                                            <tr>
-                                                <td>2</td>
-                                                <td>Minerva Hooper</td>
-                                                <td>$23,789</td>
-                                                <td>Curaçao</td>
-                                                <td>Sinaai-Waas</td>
-                                            </tr>
+                                            
                                             
                                         </tbody>
                                     </table>
@@ -186,6 +178,34 @@
     <?php include('includes/includedjs.php');?>
     <script>
     $(document).ready(function(){
+        function populateGroupDropDown() {
+            $.ajax({
+                url: 'core/action.php',
+                type: 'POST',
+                data: {
+                    action: 'getGroupList'
+                },
+                beforeSend: function() {
+                    showLoader();
+                },
+                success: function(response) {
+                    hideLoader();
+                    var groupDropDown = '<option value="" selected>Choose...</option>';
+                    $.each(response, function(index, group) {
+                        groupDropDown += '<option value="'+group.ID+'">'+group.Name+'</option>';
+                    });
+                    $("#group").html(groupDropDown);
+                    $("#group").select2();
+                    $("#group").addClass("select2DropdownOverride");
+                },
+                error: function(xhr, status, error) {
+                    alert('Error: ' + error);
+                    hideLoader();
+                }
+            });
+        }
+        populateGroupDropDown();
+        
         var dataTable = $('#dataTables-memberList').DataTable({
             responsive: true,
             pageLength: 20,
@@ -213,7 +233,7 @@
                             member.Name,
                             member.Email,
                             member.GroupID,
-                            '<button class="btn btn-outline-secondary mb-2">Edit</button>'
+                            '<button class="btn btn-outline-secondary mb-2 editMember" data-id="'+member.ID+'">Edit</button>'
                         ]).draw();
                         sno++;
                     });
@@ -226,6 +246,42 @@
         }
 
         getMemberList();
+
+        
+        $('#dataTables-memberList').on("click", ".editMember", function() {
+            let memberId = $(this).attr('data-id');
+            $.ajax({
+                url: 'core/action.php',
+                type: 'POST',
+                data: {
+                    action: 'getMemberSingle',
+                    memberId: memberId
+                },
+                beforeSend: function() {
+                    showLoader();
+                },
+                success: function(response) {
+                    hideLoader();
+                    $("#editId").val(response.ID);
+                    $("#name").focus();
+                    $("#name").val(response.Name);
+                    $("#email").val(response.Email);
+                    $("#address").val(response.Address);
+                    $("#city").val(response.City);
+                    $("#state").val(response.State);
+                    $("#zip").val(response.Zip);
+                    $("#phone").val(response.Phone);
+                    $("#group").val(response.GroupID).trigger('change.select2');
+                    $("#saveMemberBtn").val("Save Member");
+                    
+                },
+                error: function(xhr, status, error) {
+                    console.log('Error: ' + error);
+                    hideLoader();
+                }
+            });
+        });
+
 
         $('#addMemberForm').submit(function(e) {
             // Prevent default form submission behavior
@@ -244,22 +300,13 @@
                     showLoader();
                 },
                 success: function(response) {
-                    // Handle success response
-                    $("#name").val("");
-                    $("#email").val("");
-                    $("#address").val("");
-                    $("#city").val("");
-                    $("#state").val("");
-                    $("#zip").val("");
-                    $("#phone").val("");
-                    $('#group option[value=""]').attr("selected",true);
-
+                    $('#addMemberForm')[0].reset();
+                    $("#group").val("").trigger('change.select2');
+                    $("#saveMemberBtn").val("Add Member [+]");
                     getMemberList();
-
                     // Hide loader
                     hideLoader();
-
-                    // You can redirect or perform other actions here if needed
+                    showSuccessPopUp();
                 },
                 error: function(xhr, status, error) {
                     // Handle error response
@@ -270,7 +317,16 @@
                 }
             });
         });
-    })
+        
+        function showSuccessPopUp(){
+            $("#successMessage").show();
+            setTimeout(function() {
+                $("#successMessage").hide();
+            }, 5000);
+        }
+    }) //onready ends
+
+    
     </script>
 </body>
 
