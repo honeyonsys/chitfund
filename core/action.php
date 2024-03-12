@@ -11,6 +11,9 @@ if(!empty($_POST['action']) && $_POST['action'] == 'getGroupList') {
 if(!empty($_POST['action']) && $_POST['action'] == 'getGroupSingle') {
 	$methods->getGroupSingle();
 }
+if(!empty($_POST['action']) && $_POST['action'] == 'updateGroupInMember') {
+	$methods->updateGroupInMember();
+}
 if(!empty($_POST['action']) && $_POST['action'] == 'addMember') {
 	$methods->addMember();
 }

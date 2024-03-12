@@ -27,12 +27,12 @@
                                 <span aria-hidden="true">&times;</span>
                                 </button>
                             </div>
-                            <div class="modal-body" id="membersBodalBody">
+                            <div class="modal-body" id="membersModalBody">
                                 
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="button" class="btn btn-primary">Save changes</button>
+                                <button type="button" class="btn btn-primary" id="addMembersToGroup">Add Members to Group</button>
                             </div>
                             </div>
                         </div>
@@ -185,36 +185,46 @@
 
         //triggered event when members modal open for selecting members
         $('#membersModal').on('show.bs.modal', function (event) {
-            var modal = $(this)
-            $.ajax({
-                url: 'core/action.php',
-                type: 'POST',
-                data: {
-                    action: 'getMemberList'
-                },
-                beforeSend: function() {
-                    showLoader();
-                },
-                success: function(data) {
-                    hideLoader();
-                    $('#membersBodalBody').empty();
+            var editId = $("#editId").val();
+            if(editId == "") {
+                var errorHtml = '<div class="alert alert-danger" role="alert">Please edit any existing group to select list of members</div>';
+                $("#membersModalBody").html(errorHtml);
 
-                    // Iterate over the user data and generate HTML content
-                    data.forEach(function(user) {
-                        var checkboxHtml = '<div class="form-check">' +
-                                            '<input class="form-check-input" type="checkbox" value="' + user.ID + '" id="userCheckbox' + user.ID + '">' +
-                                            '<label class="form-check-label" for="userCheckbox' + user.ID + '">' + user.Name + ' | ' + user.Email+'</label>' +
-                                        '</div>';
-                        // Append the checkbox HTML to the modal body
-                        $('#membersBodalBody').append(checkboxHtml);
-                    });
+            } else {
+                var modal = $(this)
+                $.ajax({
+                    url: 'core/action.php',
+                    type: 'POST',
+                    data: {
+                        action: 'getMemberList'
+                    },
+                    beforeSend: function() {
+                        showLoader();
+                    },
+                    success: function(data) {
+                        hideLoader();
+                        $('#membersModalBody').empty();
 
-                },
-                error: function(xhr, status, error) {
-                    console.log('Error: ' + error);
-                    hideLoader();
-                }
-            });
+                        // Iterate over the user data and generate HTML content
+                        data.forEach(function(user) {
+                            var checkboxHtml = '<div class="form-check">';
+                            checkboxHtml += '<input class="form-check-input" type="checkbox" value="' + user.ID + '" id="userCheckbox' + user.ID + '"';
+                            if(editId==user.GroupID) {
+                                checkboxHtml += ' checked'
+                            }
+                            checkboxHtml += '>';
+                            checkboxHtml += '<label class="form-check-label" for="userCheckbox' + user.ID + '">' + user.Name + ' | ' + user.Email+'</label></div>';
+                            
+                            $('#membersModalBody').append(checkboxHtml);
+                        });
+
+                    },
+                    error: function(xhr, status, error) {
+                        console.log('Error: ' + error);
+                        hideLoader();
+                    }
+                });
+            }
             
         });
 
@@ -247,6 +257,46 @@
                 }
             });
         });
+
+        //add members button in modal, the selected checkbox items will add to group
+        // $("#addMembersToGroup").click(function() {
+        //     alert("asfsdf");
+        // });
+
+        $('#addMembersToGroup').on('click', function() {
+            // Initialize an array to store the IDs of checked checkboxes
+            var checkedIds = [];
+            var groupId = $("#editId").val();
+            // Find all checked checkboxes and collect their IDs
+            $('#membersModalBody input[type="checkbox"]:checked').each(function() {
+                checkedIds.push($(this).val());
+            });
+
+            // Iterate over the checked IDs and make AJAX calls to update the values
+            checkedIds.forEach(function(id) {
+                $.ajax({
+                    url: 'core/action.php', // Update with your API endpoint
+                    method: 'POST',
+                    data: {
+                        action: 'updateGroupInMember',
+                        memberId: id,
+                        groupId: groupId
+                        // Add other parameters as needed for updating values
+                    },
+                    success: function(response) {
+                        // Handle success response
+                        
+                        console.log('Value updated successfully:', response);
+                    },
+                    error: function(xhr, status, error) {
+                        // Handle error
+                        console.error('Error updating value:', error);
+                    }
+                });
+            });
+            $('#membersModal').modal('hide');
+            alert("members added to the group");
+        }); //end addMembersToGroup button method 
     })();
     </script>
 </body>

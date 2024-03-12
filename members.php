@@ -232,7 +232,7 @@
                             sno,
                             member.Name,
                             member.Email,
-                            member.GroupID,
+                            member.GroupName,
                             '<button class="btn btn-outline-secondary mb-2 editMember" data-id="'+member.ID+'">Edit</button>'
                         ]).draw();
                         sno++;

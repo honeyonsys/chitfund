@@ -212,7 +212,20 @@ class Methods {
         echo json_encode($response);
     }
     
-    
+    public function updateGroupInMember() {
+        if(isset($_POST['memberId']) && isset($_POST['groupId'])) {
+            $sql = "UPDATE ".$this->membersTable." SET GroupID=? WHERE id=?";
+            $stmt = $this->dbConnect->prepare($sql);
+            $stmt->bind_param("ii", $_POST['groupId'], $_POST['memberId']);
+            if ($stmt->execute()) {
+                $response = array("status" => "success", "message" => "Member updated successfully");
+            } else {
+                $response = array("status" => "error", "message" => "Failed to member");
+            }
+            // Close the statement
+            $stmt->close();
+        }
+    }
     
     public function getMemberList() {
         $sqlQuery = "SELECT members.*, groups.Name as GroupName FROM ".$this->membersTable ." JOIN groups ON members.GroupId = groups.ID";
@@ -224,7 +237,8 @@ class Methods {
         while ($group = mysqli_fetch_assoc($result)) {        
             $memberRow = array();
             $memberRow['ID'] = $group['ID'];
-            $memberRow['GroupID'] = $group['GroupName'];
+            $memberRow['GroupID'] = $group['GroupID'];
+            $memberRow['GroupName'] = $group['GroupName'];
             $memberRow['Name'] = $group['Name'];
             $memberRow['Email'] = $group['Email'];
             $memberRow['Phone'] = $group['Phone'];
