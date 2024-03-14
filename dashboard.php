@@ -28,12 +28,46 @@
                             <h2 class="page-title">Dashboard</h2>
                         </div>
                     </div>
-                    <div class="row"></div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header">Overall Progress</div>
+                            </div>
+                            <div class="card-body">
+                            <div>
+                                <canvas id="myChart"></canvas>
+                            </div>
+
+                            </div>
+                        </div>  
+                    </div>
                 </div>
             </div>
         </div>
     </div>
     <?php include('includes/includedjs.php');?>
+    <script>
+  const ctx = document.getElementById('myChart');
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+      datasets: [{
+        label: '# of Votes',
+        data: [12, 19, 3, 5, 2, 3],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+</script>
 </body>
 
 </html>

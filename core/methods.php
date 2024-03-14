@@ -5,7 +5,7 @@ class Methods {
     protected $userName = 'root';
     protected $password = '';
 	protected $dbName = 'chitfund';
-	private $userTable = 'user';
+	private $userTable = 'users';
 	private $groupTable = 'groups';
 	private $membersTable = 'members';
 	private $paymentTable = 'payments';
@@ -53,25 +53,26 @@ class Methods {
 	}
 	public function adminLogin(){		
 		$errorMessage = '';
-		if(!empty($_POST["login"]) && $_POST["email"]!=''&& $_POST["password"]!='') {	
+		if($_POST["email"]!=''&& $_POST["password"]!='') {	
 			$email = $_POST['email'];
 			$password = $_POST['password'];
 			$sqlQuery = "SELECT * FROM ".$this->userTable." 
-				WHERE email='".$email."' AND password='".md5($password)."' AND status = 'active' AND type = 'administrator'";
+				WHERE Email='".$email."' AND Password='".md5($password)."' AND Status = '1'";
 			$resultSet = mysqli_query($this->dbConnect, $sqlQuery) or die("error".mysql_error());
 			$isValidLogin = mysqli_num_rows($resultSet);	
 			if($isValidLogin){
 				$userDetails = mysqli_fetch_assoc($resultSet);
-				$_SESSION["adminUserid"] = $userDetails['id'];
-				$_SESSION["admin"] = $userDetails['first_name']." ".$userDetails['last_name'];
-				header("location: dashboard.php"); 		
+				$_SESSION["adminUserid"] = $userDetails['ID'];
+				$_SESSION["admin"] = $userDetails['Name'];
+				//header("location: dashboard.php"); 		
+                $errorMessage = 'success';
 			} else {		
 				$errorMessage = "Invalid login!";		 
 			}
 		} else if(!empty($_POST["login"])){
 			$errorMessage = "Enter Both user and password!";	
 		}
-		return $errorMessage; 		
+		echo $errorMessage; 		
 	}
 
 
@@ -283,5 +284,41 @@ class Methods {
         }
     }
     
-
+    public function getMembersPaymentWithGroup() {
+        //if(isset($_POST['groupId'])) {
+            $sqlQuery = "SELECT members.*, groups.Name as GroupName, groups.Amount as GroupAmount, groups.CreatedDate as GroupCreatedDate FROM ".$this->membersTable ." JOIN groups ON members.GroupId = groups.ID";
+            $result = mysqli_query($this->dbConnect, $sqlQuery);
+            $numRows = mysqli_num_rows($result);
+            
+            $memberList = array();
+            while ($group = mysqli_fetch_assoc($result)) {        
+                $memberRow = array();
+                $memberRow['ID'] = $group['ID'];
+                $memberRow['GroupID'] = $group['GroupID'];
+                $memberRow['GroupName'] = $group['GroupName'];
+                $memberRow['GroupAmount'] = $group['GroupAmount'];
+                $memberRow['GroupCreatedDate'] = $group['GroupCreatedDate'];
+                $memberRow['Name'] = $group['Name'];
+                $memberRow['Email'] = $group['Email'];
+                $memberRow['Phone'] = $group['Phone'];
+                $memberRow['Address'] = $group['Address'];
+                $memberRow['City'] = $group['City'];
+                $memberRow['State'] = $group['State'];
+                $memberRow['Zip'] = $group['Zip'];
+                $memberRow['ContributionAmount'] = $group['ContributionAmount'];
+                $memberRow['Status'] = $group['Status'];
+                $memberList[] = $memberRow;
+            }
+            
+            // Encode each group individually as JSON
+            $jsonResponse = array();
+            foreach ($memberList as $member) {
+                $jsonResponse[] = json_encode($member);
+            }
+            
+            // Return the response as JSON
+            header('Content-Type: application/json');
+            echo '[' . implode(',', $jsonResponse) . ']';           
+        //}
+    }
 }

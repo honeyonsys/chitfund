@@ -1,3 +1,6 @@
+<?php 
+include("validateSession.php");
+?>
 <!doctype html>
 <html lang="en">
 <head>
