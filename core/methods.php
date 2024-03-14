@@ -285,8 +285,8 @@ class Methods {
     }
     
     public function getMembersPaymentWithGroup() {
-        //if(isset($_POST['groupId'])) {
-            $sqlQuery = "SELECT members.*, groups.Name as GroupName, groups.Amount as GroupAmount, groups.CreatedDate as GroupCreatedDate FROM ".$this->membersTable ." JOIN groups ON members.GroupId = groups.ID";
+        if(isset($_POST['groupId'])) {
+            $sqlQuery = "SELECT members.*, groups.Name as GroupName, groups.Amount as GroupAmount, groups.CreatedDate as GroupCreatedDate FROM ".$this->membersTable ." JOIN groups ON members.GroupId = groups.ID WHERE members.GroupId = ". $_POST['groupId'];
             $result = mysqli_query($this->dbConnect, $sqlQuery);
             $numRows = mysqli_num_rows($result);
             
@@ -319,6 +319,6 @@ class Methods {
             // Return the response as JSON
             header('Content-Type: application/json');
             echo '[' . implode(',', $jsonResponse) . ']';           
-        //}
+        }
     }
 }

@@ -25,25 +25,19 @@ include("validateSession.php");
                         </div>
                     </div>
                     <div class="row">
+                        
                         <div class="col-md-12">
                             <div class="card">
-                                <div class="card-header">Filter the memebers by group</div>
+                            <div class="card-header">Filter the memebers by group</div>
                                 <div class="card-body">
                                     <div class="mb-3 col-md-6">
-                                        <label for="group" class="form-label">Group</label>
+                                        <label for="group" class="form-label">Select Group</label>
                                         <select name="group" id="group" class="form-select">
                                             <option value="" selected>Choose...</option>
                                         </select>
                                         <div class="valid-feedback">Looks good!</div>
                                         <div class="invalid-feedback">Please select a Group.</div>
-                                    </div>   
-                                </div>
-                            </div>        
-                        </div><!--top form for group ends-->
-                        <div class="col-md-12">
-                            <div class="card">
-                            <div class="card-header">Filter the memebers by group</div>
-                                <div class="card-body">
+                                    </div>
                                     <table class="table table-hover" id="dataTables-pendingPayment" width="100%">
                                         <thead>
                                             <tr>
@@ -53,7 +47,7 @@ include("validateSession.php");
                                                 <th>Installment Amount</th>
                                                 <th>Progress</th>
                                             </tr>
-                                            <tr>
+                                            <!-- <tr>
                                                 <td>1</td>
                                                 <td>harish</td>
                                                 <td>02/02/2023</td>
@@ -63,7 +57,7 @@ include("validateSession.php");
                                                         <div class="progress-bar progress-bar-striped bg-success" role="progressbar" style="width: 25%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
                                                     </div>
                                                 </td>
-                                            </tr>
+                                            </tr> -->
                                         </thead>
                                         <tbody>
                                             
@@ -118,12 +112,13 @@ include("validateSession.php");
             ordering: true
         });
 
-        function loadMembersForPayment() {
+        function loadMembersForPayment(groupId) {
             $.ajax({
                 url: 'core/action.php',
                 type: 'POST',
                 data: {
-                    action: 'getMembersPaymentWithGroup'
+                    action: 'getMembersPaymentWithGroup',
+                    groupId: groupId
                 },
                 beforeSend: function() {
                     showLoader();
@@ -150,7 +145,10 @@ include("validateSession.php");
             });
         }
 
-        loadMembersForPayment();
+        $("#group").change(function() {
+            loadMembersForPayment($(this).val());
+        });
+        
     });
     </script>
 </body>
