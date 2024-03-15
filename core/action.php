@@ -29,5 +29,8 @@ if(!empty($_POST['action']) && $_POST['action'] == 'getMemberSingle') {
 if(!empty($_POST['action']) && $_POST['action'] == 'getMembersPaymentWithGroup') {
 	$methods->getMembersPaymentWithGroup();
 }
+if(!empty($_POST['action']) && $_POST['action'] == 'addPayment') {
+	$methods->addPayment();
+}
 
 

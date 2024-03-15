@@ -46,6 +46,7 @@ include("validateSession.php");
                                                 <th>Start Date</th>
                                                 <th>Installment Amount</th>
                                                 <th>Progress</th>
+                                                <th>Action</th>
                                             </tr>
                                             <!-- <tr>
                                                 <td>1</td>
@@ -68,7 +69,46 @@ include("validateSession.php");
                             </div>
                         </div>
 
-                    </div>
+                        <!--Member Payment Detail Block-->
+                        <div class="col-md-12">
+                            <div class="card">
+                            <div class="card-header">Payment Details</div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-2"><b>Member Name:</b> <input type="text" id="memberIdForPayment"/></div>
+                                        <div class="col-md-10" id="paymentDetailMemberName">Harish Kumar</div>
+                                        
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-2"><b>Group:</b> <input type="text" id="groupIdForPayment"/></div>
+                                        <div class="col-md-10" id="paymentDetailMemberGroup">group name</div>
+                                        
+                                    </div>
+                                    <div class="row mt-5">
+                                        <div class="col-md-12"><h3>Pending/Paid Installment</h3></div>
+                                        <div class="col-md-12">
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">#</th>
+                                                    <th scope="col">Month - Year</th>
+                                                    <th scope="col">Paid & Pending Amount</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="paymentStatus">
+                                                
+                                                
+                                            </tbody>
+                                            </table>
+
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                        </div>  
+                        <!--Member Payment Detail Block ends-->
+                    </div><!--row ends-->
                 </div>
             </div>
         </div>
@@ -90,7 +130,7 @@ include("validateSession.php");
                     hideLoader();
                     var groupDropDown = '<option value="" selected>Choose...</option>';
                     $.each(response, function(index, group) {
-                        groupDropDown += '<option value="'+group.ID+'">'+group.Name+'</option>';
+                        groupDropDown += '<option value="'+group.ID+'" data-createdAt="'+group.CreatedAt+'">'+group.Name+'</option>';
                     });
                     $("#group").html(groupDropDown);
                     $("#group").select2();
@@ -126,17 +166,24 @@ include("validateSession.php");
                 success: function(response) {
                     hideLoader();
                     dataTable.clear().draw();
-                    var sno = 1;
-                    $.each(response, function(index, member) {
-                        dataTable.row.add([
-                            sno,
-                            member.Name,
-                            member.GroupCreatedDate,
-                            parseInt(member.GroupAmount/12),
-                            '<div class="progress"><div class="progress-bar progress-bar-striped bg-success" role="progressbar" style="width: 25%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div></div>'
-                        ]).draw();
-                        sno++;
-                    });
+                    if(response.length > 0) {
+                        var sno = 1;
+                        var totalMembers = response.length;
+                        var groupTotalAmount = response[0].GroupAmount;
+                        var groupPerMonthInstallment = parseInt(groupTotalAmount/12);
+                        var perMemberInstallment = parseInt(groupPerMonthInstallment/totalMembers);
+                        $.each(response, function(index, member) {
+                            dataTable.row.add([
+                                sno,
+                                member.Name,
+                                member.GroupCreatedDate,
+                                "<b>₹</b>"+perMemberInstallment,
+                                '<div class="progress"><div class="progress-bar progress-bar-striped bg-success" role="progressbar" style="width: 25%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div></div>',
+                                '<button class="btn btn-info paymentDetailBtn" data-id="'+member.ID+'">Details</button>'
+                            ]).draw();
+                            sno++;
+                        });
+                    }
                 },
                 error: function(xhr, status, error) {
                     console.log('Error: ' + error);
@@ -148,7 +195,93 @@ include("validateSession.php");
         $("#group").change(function() {
             loadMembersForPayment($(this).val());
         });
-        
+
+        $("#dataTables-pendingPayment").on("click", ".paymentDetailBtn", function() {
+            // Select the target div by its ID
+            var targetDiv = $('#paymentDetailMemberName');
+
+            // Get the position of the target div relative to the document
+            var targetPosition = targetDiv.offset().top;
+
+            // Animate scrolling to the target position
+            $('html, body').animate({
+                scrollTop: targetPosition
+            }, 500); // Adjust the duration as needed (in milliseconds)
+
+            $("#paymentDetailMemberName").focus();
+            $("#paymentDetailMemberName").text($(this).parents("tr").children("td:eq(1)").text());
+            $("#paymentDetailMemberGroup").text($("#group").find('option:selected').text());
+            $("#memberIdForPayment").val($(this).attr("data-id"));
+            $("#groupIdForPayment").val($("#group").find('option:selected').val());
+            var tableBody = $("#paymentStatus");
+            tableBody.html("");
+            // Parse the start date stamp to get the month and year
+            var startDate = new Date($(this).parents("tr").children("td:eq(2)").text());
+            var startMonth = startDate.getMonth() + 1; // Months are 0-indexed, so add 1
+            var startYear = startDate.getFullYear();
+
+
+
+            for (var i = 0; i < 12; i++) {
+                // Calculate the month and year for the current iteration
+                var currentMonth = (startMonth + i) % 12; // Wrap around to January if necessary
+                var currentYear = startYear + Math.floor((startMonth + i - 1) / 12); // Increment year if necessary
+
+                // Create a table row element
+                var row = $('<tr>');
+
+                // Create and append the table header cell with the month number
+                var th = $('<th scope="row">').text(i+1);
+                row.append(th);
+
+                var tdMonth = $('<td>').text(getMonthName(currentMonth) + ' ' + currentYear);
+                row.append(tdMonth);
+
+                var tdInput = $('<td>').append('<input type="text" class="form-control is-invalid" value="">');
+                row.append(tdInput);
+                
+                var tdPayBtn = $('<td>').append('<input type="button" class="btn btn-primary payBtn" value="Pay" />');
+                row.append(tdPayBtn);
+                
+                // Append the row to the table body
+                tableBody.append(row);
+            }
+            
+        });
+
+        // Function to get the name of the month based on its number
+        function getMonthName(monthNumber) {
+            var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            return monthNames[monthNumber === 0 ? 11 : monthNumber - 1];
+        }
+
+        $("#paymentStatus").on("click", ".payBtn", function() {
+            var groupId = $("#groupIdForPayment").val();
+            var memberId = $("#memberIdForPayment").val(); 
+            var amount = $(this).parents("tr").children("td:eq(1)").children("input").val();
+            $.ajax({
+                url: 'core/action.php',
+                type: 'POST',
+                data: {
+                    action: 'addPayment',
+                    groupId: groupId,
+                    memberId: memberId,
+                    amount: amount
+                },
+                beforeSend: function() {
+                    showLoader();
+                },
+                success: function(response) {
+                    hideLoader();
+                    alert(response);
+                },
+                error: function(xhr, status, error) {
+                    console.log('Error: ' + error);
+                    alert('Error: ' + error);
+                    hideLoader();
+                }
+            });
+        });
     });
     </script>
 </body>

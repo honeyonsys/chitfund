@@ -8,7 +8,7 @@ class Methods {
 	private $userTable = 'users';
 	private $groupTable = 'groups';
 	private $membersTable = 'members';
-	private $paymentTable = 'payments';
+	private $paymentTable = 'payment';
     private $dbConnect = false;
     public function __construct(){
         if(!$this->dbConnect){ 		
@@ -320,5 +320,35 @@ class Methods {
             header('Content-Type: application/json');
             echo '[' . implode(',', $jsonResponse) . ']';           
         }
+    }
+
+
+    public function addPayment() {
+        if (isset($_POST['groupId']) && isset($_POST['memberId']) && isset($_POST['amount'])) {
+            
+            // Prepare SQL statement for insertion
+            $sql = "INSERT INTO " . $this->paymentTable . " (MemberId, GroupId, AmountPaid, DatePaid) VALUES (?, ?, ?, ?)";
+            
+            // Prepare and bind parameters
+            $stmt = $this->dbConnect->prepare($sql);
+            $currentDateTime = date("d-m-Y H:i:s");
+            $stmt->bind_param("iiis", $_POST['memberId'], $_POST['groupId'], $_POST['amount'], $currentDateTime);
+            
+            // Execute the statement
+            if ($stmt->execute()) {
+                $response = array("status" => "success", "message" => "Payment added successfully");
+            } else {
+                $response = array("status" => "error", "message" => "Failed to add payment");
+            }
+            
+            // Close the statement
+            $stmt->close();
+        } else {
+            $response = array("status" => "error", "message" => "Missing required fields");
+        }
+        
+        // Return the response as JSON
+        header('Content-Type: application/json');
+        echo json_encode($response);
     }
 }
