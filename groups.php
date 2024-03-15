@@ -131,7 +131,7 @@ include("validateSession.php");
                     $.each(response, function(index, group) {
                         dataTable.row.add([
                             group.Name,
-                            group.Amount,
+                            "<b>₹</b>"+group.Amount,
                             '<button class="btn btn-outline-secondary mb-2 editGroup" data-id="'+group.ID+'">Edit</button>'
                         ]).draw();
                     });
