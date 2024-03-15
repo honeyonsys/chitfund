@@ -4,13 +4,28 @@
     </div>
     <ul class="list-unstyled components text-secondary">
         <li>
-            <a href="dashboard.php"><i class="fas fa-home"></i>Dashboard</a>
+            <a href="dashboard.php"><i class="fas fa-home"></i> Dashboard</a>
         </li>
         <li>
-            <a href="groups.php"><i class="fas fa-table"></i>Group Management</a>
+            <a href="groups.php"><i class="fas fa-table"></i> Group Management</a>
         </li>
         <li>
-            <a href="members.php"><i class="fas fa-table"></i>Member Management</a>
+            <a href="members.php"><i class="fa fa-users"></i> Member Management</a>
+        </li>
+        <li>
+            <a href="payments.php"><i class="fas fa-money-bill-wave"></i> Payment Management</a>
+        </li>
+        <li>
+            <a href="#"><i class="fas fa-money-bill-wave"></i> Report Management</a>
+        </li>
+        <li>
+            <a href="#"><i class="fas fa-money-bill-wave"></i> Affiliate Management</a>
+        </li>
+        <li>
+            <a href="payments.php"><i class="fas fa-money-bill-wave"></i>Guest Invite</a>
+        </li>
+        <li>
+            <a href="payments.php"><i class="fas fa-money-bill-wave"></i>User Management</a>
         </li>
         
         <!-- <li>
@@ -25,6 +40,9 @@
         
         <li>
             <a href="#"><i class="fas fa-cog"></i>Settings</a>
+        </li>
+        <li>
+            <a href="logout.php"><i class="fas fa-sign-out-alt"></i>Logout</a>
         </li>
     </ul>
 </nav>
