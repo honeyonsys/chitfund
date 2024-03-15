@@ -70,18 +70,18 @@ include("validateSession.php");
                         </div>
 
                         <!--Member Payment Detail Block-->
-                        <div class="col-md-12">
+                        <div class="col-md-12" id="paymentsBlock" style="display:none">
                             <div class="card">
                             <div class="card-header">Payment Details</div>
                                 <div class="card-body">
                                     <div class="row">
-                                        <div class="col-md-2"><b>Member Name:</b> <input type="text" id="memberIdForPayment"/></div>
-                                        <div class="col-md-10" id="paymentDetailMemberName">Harish Kumar</div>
+                                        <div class="col-md-2"><b>Member Name:</b> <input type="hidden" id="memberIdForPayment"/></div>
+                                        <div class="col-md-10" id="paymentDetailMemberName">--</div>
                                         
                                     </div>
                                     <div class="row">
-                                        <div class="col-md-2"><b>Group:</b> <input type="text" id="groupIdForPayment"/></div>
-                                        <div class="col-md-10" id="paymentDetailMemberGroup">group name</div>
+                                        <div class="col-md-2"><b>Group:</b> <input type="hidden" id="groupIdForPayment"/></div>
+                                        <div class="col-md-10" id="paymentDetailMemberGroup">--</div>
                                         
                                     </div>
                                     <div class="row mt-5">
@@ -197,6 +197,7 @@ include("validateSession.php");
         });
 
         $("#dataTables-pendingPayment").on("click", ".paymentDetailBtn", function() {
+            $("#paymentsBlock").show();
             // Select the target div by its ID
             var targetDiv = $('#paymentDetailMemberName');
 
