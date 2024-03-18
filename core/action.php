@@ -26,11 +26,15 @@ if(!empty($_POST['action']) && $_POST['action'] == 'getMemberList') {
 if(!empty($_POST['action']) && $_POST['action'] == 'getMemberSingle') {
 	$methods->getMemberSingle();
 }
-if(!empty($_POST['action']) && $_POST['action'] == 'getMembersPaymentWithGroup') {
-	$methods->getMembersPaymentWithGroup();
+if(!empty($_POST['action']) && $_POST['action'] == 'getMembersForPaymentWithGroup') {
+	$methods->getMembersForPaymentWithGroup();
 }
 if(!empty($_POST['action']) && $_POST['action'] == 'addPayment') {
 	$methods->addPayment();
 }
+if(!empty($_POST['action']) && $_POST['action'] == 'getPaidAmountWithMemberIdAndGroupId') {
+	$methods->getPaidAmountWithMemberIdAndGroupId();
+}
+
 
 

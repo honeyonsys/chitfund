@@ -284,7 +284,7 @@ class Methods {
         }
     }
     
-    public function getMembersPaymentWithGroup() {
+    public function getMembersForPaymentWithGroup() {
         if(isset($_POST['groupId'])) {
             $sqlQuery = "SELECT members.*, groups.Name as GroupName, groups.Amount as GroupAmount, groups.CreatedDate as GroupCreatedDate FROM ".$this->membersTable ." JOIN groups ON members.GroupId = groups.ID WHERE members.GroupId = ". $_POST['groupId'];
             $result = mysqli_query($this->dbConnect, $sqlQuery);
@@ -324,15 +324,15 @@ class Methods {
 
 
     public function addPayment() {
-        if (isset($_POST['groupId']) && isset($_POST['memberId']) && isset($_POST['amount'])) {
+        if (isset($_POST['groupId']) && isset($_POST['memberId']) && isset($_POST['amount']) && isset($_POST['paidForYearMonth'])) {
             
             // Prepare SQL statement for insertion
-            $sql = "INSERT INTO " . $this->paymentTable . " (MemberId, GroupId, AmountPaid, DatePaid) VALUES (?, ?, ?, ?)";
+            $sql = "INSERT INTO " . $this->paymentTable . " (MemberId, GroupId, AmountPaid, paidForYearMonth, DatePaid) VALUES (?, ?, ?, ?, ?)";
             
             // Prepare and bind parameters
             $stmt = $this->dbConnect->prepare($sql);
             $currentDateTime = date("d-m-Y H:i:s");
-            $stmt->bind_param("iiis", $_POST['memberId'], $_POST['groupId'], $_POST['amount'], $currentDateTime);
+            $stmt->bind_param("iiiss", $_POST['memberId'], $_POST['groupId'], $_POST['amount'], $_POST['paidForYearMonth'], $currentDateTime);
             
             // Execute the statement
             if ($stmt->execute()) {
@@ -351,4 +351,46 @@ class Methods {
         header('Content-Type: application/json');
         echo json_encode($response);
     }
+
+    public function getPaidAmountWithMemberIdAndGroupId() {
+        if(isset($_POST['memberId']) && isset($_POST['groupId'])) {
+            $memberId = $_POST['memberId']; 
+            $groupId = $_POST['groupId'];
+            
+            // Prepare the SQL query
+            $sqlQuery = 'SELECT * FROM '.$this->paymentTable .' WHERE MemberId=? AND GroupId=?';
+            $stmt = mysqli_prepare($this->dbConnect, $sqlQuery);
+            
+            // Bind parameters
+            mysqli_stmt_bind_param($stmt, "ii", $memberId, $groupId);
+            
+            // Execute the query
+            mysqli_stmt_execute($stmt);
+            
+            // Get the result set
+            $result = mysqli_stmt_get_result($stmt);
+            
+            // Fetch the rows
+            $paymentList = array();
+            while ($payment = mysqli_fetch_assoc($result)) {        
+                $paymentList[] = $payment;
+            }
+            
+            // Close the statement
+            mysqli_stmt_close($stmt);
+            
+            // Return the payment list as JSON response
+            header('Content-Type: application/json');
+            echo json_encode($paymentList);
+            return;
+                       
+        } else {
+            $response = array("status" => "error", "message" => "Missing required fields");
+        }
+        
+        // Return the response as JSON
+        header('Content-Type: application/json');
+        echo json_encode($response);
+    }
+    
 }

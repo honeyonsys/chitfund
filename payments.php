@@ -157,7 +157,7 @@ include("validateSession.php");
                 url: 'core/action.php',
                 type: 'POST',
                 data: {
-                    action: 'getMembersPaymentWithGroup',
+                    action: 'getMembersForPaymentWithGroup',
                     groupId: groupId
                 },
                 beforeSend: function() {
@@ -197,6 +197,9 @@ include("validateSession.php");
         });
 
         $("#dataTables-pendingPayment").on("click", ".paymentDetailBtn", function() {
+            //Fetching paid amounts
+            
+            
             $("#paymentsBlock").show();
             // Select the target div by its ID
             var targetDiv = $('#paymentDetailMemberName');
@@ -214,14 +217,13 @@ include("validateSession.php");
             $("#paymentDetailMemberGroup").text($("#group").find('option:selected').text());
             $("#memberIdForPayment").val($(this).attr("data-id"));
             $("#groupIdForPayment").val($("#group").find('option:selected').val());
+            
             var tableBody = $("#paymentStatus");
             tableBody.html("");
             // Parse the start date stamp to get the month and year
             var startDate = new Date($(this).parents("tr").children("td:eq(2)").text());
             var startMonth = startDate.getMonth() + 1; // Months are 0-indexed, so add 1
             var startYear = startDate.getFullYear();
-
-
 
             for (var i = 0; i < 12; i++) {
                 // Calculate the month and year for the current iteration
@@ -247,8 +249,53 @@ include("validateSession.php");
                 // Append the row to the table body
                 tableBody.append(row);
             }
+
+
+            //getting all the paid amount done by member for this group
+            $.ajax({
+                url: 'core/action.php',
+                type: 'POST',
+                data: {
+                    action: 'getPaidAmountWithMemberIdAndGroupId',
+                    groupId: $("#groupIdForPayment").val(),
+                    memberId: $("#memberIdForPayment").val()
+                },
+                beforeSend: function() {
+                    showLoader();
+                },
+                success: function(response) {
+                    hideLoader();
+                    var paidAmounts = response;
+                    //localStorage.setItem("paymentRes", JSON.stringify(response));
+                    $('#paymentStatus tr').each(function() {
+                        var monthYearText = $(this).find('td:eq(0)').text();
+                        var inputField = $(this).find('input[type="text"]');
+                        var payButton = $(this).find('.payBtn');
+                        // Find the corresponding paid amount for the month and year
+                        var paidAmount = paidAmounts.find(function(item) {
+                            return item.paidForYearMonth === monthYearText;
+                        });
+                        
+                        if (paidAmount) {
+                            // Set the value of the input field to the paid amount
+                            inputField.val(paidAmount.AmountPaid);
+                            // Change the class of the input field to 'is-valid'
+                            inputField.removeClass('is-invalid').addClass('is-valid');
+                            inputField.prop('disabled', true);
+                            payButton.remove();
+                        }
+                    });
+                    
+                },
+                error: function(xhr, status, error) {
+                    console.log('Error: ' + error);
+                    hideLoader();
+                }
+            });
             
         });
+
+        
 
         // Function to get the name of the month based on its number
         function getMonthName(monthNumber) {
@@ -260,28 +307,38 @@ include("validateSession.php");
             var groupId = $("#groupIdForPayment").val();
             var memberId = $("#memberIdForPayment").val(); 
             var amount = $(this).parents("tr").children("td:eq(1)").children("input").val();
-            $.ajax({
-                url: 'core/action.php',
-                type: 'POST',
-                data: {
-                    action: 'addPayment',
-                    groupId: groupId,
-                    memberId: memberId,
-                    amount: amount
-                },
-                beforeSend: function() {
-                    showLoader();
-                },
-                success: function(response) {
-                    hideLoader();
-                    alert(response);
-                },
-                error: function(xhr, status, error) {
-                    console.log('Error: ' + error);
-                    alert('Error: ' + error);
-                    hideLoader();
-                }
-            });
+            var paidForYearMonth = $(this).parents("tr").children("td:eq(0)").text();
+            var payBtn = $(this);
+            var payInputField = $(this).parents('tr').children('td:eq(1)').children("input"); 
+            if(amount <=0 || amount == "") {
+                alert("Please fill the amount");
+            } else {
+                $.ajax({
+                    url: 'core/action.php',
+                    type: 'POST',
+                    data: {
+                        action: 'addPayment',
+                        groupId: groupId,
+                        memberId: memberId,
+                        amount: amount,
+                        paidForYearMonth: paidForYearMonth
+                    },
+                    beforeSend: function() {
+                        showLoader();
+                    },
+                    success: function(response) {
+                        hideLoader();
+                        payInputField.removeClass('is-invalid').addClass('is-valid');
+                        payInputField.prop('disabled', true);
+                        payBtn.remove();
+                    },
+                    error: function(xhr, status, error) {
+                        console.log('Error: ' + error);
+                        alert('Error: ' + error);
+                        hideLoader();
+                    }
+                });
+            }
         });
     });
     </script>
